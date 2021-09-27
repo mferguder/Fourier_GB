@@ -9,13 +9,13 @@ Inputs:
         Head, tail, and surface positions of each lipid molecule in a bilayer
 Outputs:
 
-        Time-series data of spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Time-series data of spectra (Gridded surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
         Related wave numbers [nm]
 
 ## Blocking Spectra
 Inputs:
 
-        Time-series data of spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Time-series data of spectra (Gridded surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
         Related wave numbers [nm]
 Outputs:
 
