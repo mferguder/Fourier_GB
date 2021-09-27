@@ -1,5 +1,5 @@
 # Membrane-Fluctuation
-Grid-based analysis of surface and direction fields of fluctuating flat membrane
+Grid-based and Least-squares analysis of surface and direction fields of fluctuating flat membrane
 
 Following text may not be accurate
 
