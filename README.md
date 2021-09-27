@@ -20,14 +20,44 @@ Inputs:
 Outputs:
 
         Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Error bars of spectra
+Carries:
+
         Related wave numbers [nm]
 
 ## Get_Params
 Inputs:
 
         Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Error bars of spectra
         Related wave numbers [nm]
 Outputs:
 
+        Nboot=2000 bootstrapped fitting parameters
+Carries:
+
+        Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Error bars of spectra
+        Related wave numbers [nm]
+
+## Save Results
+Inputs:
+
+        Nboot=2000 bootstrapped fitting parameters
+        Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Error bars of spectra
+        Related wave numbers [nm]
+Outputs:
+
+        Best fitting parameters
+        Error bars of best fitting parameters
+Carries:
+
+        Nboot
+        Number of used wave numbers
+        Nboot=2000 bootstrapped fitting parameters
+        Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Error bars of spectra
+        Related wave numbers [nm]
         
 
