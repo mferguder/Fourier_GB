@@ -1,0 +1,96 @@
+def Fourier_LS(head,tail,surf,Lt,inorm):
+    L=Lt[:,None]
+    ln=np.sum((tail-head)**2,axis=2)**.5       # lipid length              time * N
+    D_z=abs(tail[:,:,2]-head[:,:,2])           # lipid z                   time * N
+    if inorm==0: norms=ln                      # normalization factors     time * N
+    elif inorm==1: norms=D_z
+    ns=(tail-head)/norms[:,:,None]             # lipid directors           time * N * 3
+    hN =surf[:,:,2]-np.mean(surf[:,:,2])
+    z_c=np.mean(tail[:,:,2],axis=1)            # midplane                  time
+    alphas=(head[:,:,2].T>z_c).T               # leaflet index             time * N
+    ns*=(alphas[:,:,None]*2-1)
+    s1=surf[:,:,0]+L/2
+    s2=surf[:,:,1]+L/2
+
+    M=g*1
+    q= (np.linspace(0,M,M+1)[:-1])
+    Q =(q[:,np.newaxis]**2+q[np.newaxis,:]**2)**.5
+    this=np.where(Q*2*np.pi/np.mean(Lt)<3.)
+    hq2t=np.zeros((2,time,len(this[0])))
+    nqlls=np.zeros((time,len(this[0])))
+    nqllc=np.zeros((time,len(this[0])))
+    nqll2t=np.zeros((time,len(this[0])))
+    nqLs=np.zeros((time,len(this[0])))
+    nqLc=np.zeros((time,len(this[0])))
+    nqL2t=np.zeros((time,len(this[0])))
+    for t in range(time):
+        if t%500==0: print(t)
+        L=Lt[t]
+        q= 2*np.pi/L*(np.linspace(0,M,M+1)[:-1])
+        Qx=(q[:,np.newaxis]+q[np.newaxis,:]*0)
+        Qy=(q[:,np.newaxis]*0+q[np.newaxis,:])
+        Q =(q[:,np.newaxis]**2+q[np.newaxis,:]**2)**.5
+        Qx=Qx[this[0],this[1]]
+        Qy=Qy[this[0],this[1]]
+        Q = Q[this[0],this[1]]
+
+        for layer in [True,False]:
+            pick=np.where(alphas[t] == layer)[0]
+            h_layer=hN[t,pick]
+            x_layer=s1[t,pick]
+            y_layer=s2[t,pick]
+            temp=q[np.newaxis,:,np.newaxis]*x_layer[:,np.newaxis,np.newaxis]+q[np.newaxis,np.newaxis,:]*y_layer[:,np.newaxis,np.newaxis]
+            temp=temp[:,this[0],this[1]]
+            basis= np.concatenate((np.sin(temp),np.cos(temp)), axis=1)
+            lin_fy= np.linalg.lstsq(basis,h_layer)
+            lin_fy=lin_fy[0]*1
+            lin_fy[0]=0
+            hqs=lin_fy[:int(len(lin_fy)/2)]
+            hqc=lin_fy[int(len(lin_fy)/2):]
+            hq2t[layer*1,t]=hqc**2+hqs**2
+
+    #     pick=np.where((D_z[t]/ln[t]>0.565)*(alphas[t] == layer))[0]
+        pick=np.where(D_z[t]/ln[t]>0.565)[0]
+        nxN=ns[t,pick,0]*(alphas[t,pick]*2-1)
+        nyN=ns[t,pick,1]*(alphas[t,pick]*2-1)
+        x_layer  = s1[t,pick]
+        y_layer  = s2[t,pick]
+        temp=q[np.newaxis,:,np.newaxis]*x_layer[:,np.newaxis,np.newaxis]+q[np.newaxis,np.newaxis,:]*y_layer[:,np.newaxis,np.newaxis]
+        temp=temp[:,this[0],this[1]]
+        basis= np.concatenate((np.sin(temp),np.cos(temp)), axis=1)
+        lin_fy= np.linalg.lstsq(basis,nxN)
+        lin_fy=lin_fy[0]*1
+        lin_fy[0]=0
+        nxqs=lin_fy[:int(len(lin_fy)/2)]
+        nxqc=lin_fy[:int(len(lin_fy)/2)]
+        lin_fy= np.linalg.lstsq(basis,nyN)
+        lin_fy=lin_fy[0]*1
+        lin_fy[0]=0
+        nyqs=lin_fy[:int(len(lin_fy)/2)]
+        nyqc=lin_fy[:int(len(lin_fy)/2)]
+
+        nqlls[t]=(nxqs*Qx+nyqs*Qy)/Q
+        nqllc[t]=(nxqc*Qx+nyqc*Qy)/Q
+        nqLs[t] =(nxqs*Qy-nyqs*Qx)/Q
+        nqLc[t] =(nxqc*Qy-nyqc*Qx)/Q
+
+    #         nqll2t[layer*1,t]=nqlls[t]**2+nqllc[t]**2
+    #         nqL2t[layer*1,t]=nqLs[t]**2+nqLc[t]**2
+        nqll2t[t]=nqlls[t]**2+nqllc[t]**2
+        nqL2t[t]=nqLs[t]**2+nqLc[t]**2
+    hq2t  =(hq2t[0]+hq2t[1])/2
+    # hq2t  =hq2t.reshape(2*time,len(this[0]))
+    # nqll2t  =(nqll2t[0]+nqll2t[1])/2
+    # nqL2t  =(nqL2t[0]+nqL2t[1])/2
+    q= 2*np.pi/np.mean(Lt)*(np.linspace(0,M,M+1)[:-1])
+    Q=(q[:,np.newaxis]**2+q[np.newaxis,:]**2)**.5
+    Q = Q[this[0],this[1]]
+    hq2t=hq2t[:,Q.argsort()]
+    nqll2t=nqll2t[:,Q.argsort()]
+    nqL2t=nqL2t[:,Q.argsort()]
+    Q=Q[Q.argsort()]
+    hq2t=hq2t[:,1:]*L**2/4#*L*np.pi
+    nqll2t=nqll2t[:,1:]*L**2/4#*L*np.pi
+    nqL2t=nqL2t[:,1:]*L**2/4#*L*np.pi
+    Q=Q[1:]
+    return Q,hq2t,nqll2t,nqL2t
