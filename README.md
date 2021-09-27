@@ -21,3 +21,13 @@ Outputs:
 
         Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
         Related wave numbers [nm]
+
+## Get_Params
+Inputs:
+
+        Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Related wave numbers [nm]
+Outputs:
+
+        
+
