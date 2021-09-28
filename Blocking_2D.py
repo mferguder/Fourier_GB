@@ -39,19 +39,12 @@ def Blocking_2D(xqt):
             bloxydys[ix,iy]=np.array([blox,bloy,dbloy])
     return dxq2,bloxydys
 #----------------------------------------------------------------------
-def Get_ZdZ_n_rand(f,df,pows):
-    #df/=np.sqrt(time-t0+1)
-    Z = np.zeros(X.shape)
-    dZ = np.zeros(X.shape)
-    for n in range(g):
-        for m in range(g):
-            qx=(n%g)-g*(n>g/2-1)
-            qy=(m%g)-g*(m>g/2-1)
-            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
-            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
-            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), (df[n,m])*(q**pows),1 )
-            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
-    Z[gg,gg]=np.nan
-    return Z,dZ
-
+def Spectra_2D(qq=Q2r,hq2t,nllq2t,nLq2t): ???
+    z1=np.mean(hq2t,axis=0)*np.power(qq,4)
+    z2=np.mean(nllq2t,axis=0)*np.power(qq,2)
+    z3=np.mean(nLq2t,axis=0)
+    dz1=Blocking(hq2t.T,qq)*np.power(qq,4)
+    dz2=Blocking(nllq2t.T,qq)*np.power(qq,2)
+    dz3=Blocking(nLq2t.T,qq)
+    return z1,z2,z3,dz1,dz2,dz3
 
