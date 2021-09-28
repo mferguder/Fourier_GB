@@ -1,0 +1,41 @@
+
+def Get_ZdZ_n_rand(f,df,pows):
+    #df/=np.sqrt(time-t0+1)
+    Z = np.zeros(X.shape)
+    dZ = np.zeros(X.shape)
+    for n in range(g):
+        for m in range(g):
+            qx=(n%g)-g*(n>g/2-1)
+            qy=(m%g)-g*(m>g/2-1)
+            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
+            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
+            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), (df[n,m])*(q**pows),1 )
+            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
+    Z[gg,gg]=np.nan
+    return Z,dZ
+
+def Get_ignore(xdata,lim):
+    ignore=[]
+    for i in range(len(xdata[0])):
+        qx=xdata[0,i]/(2*np.pi/Lavg)
+        qy=xdata[1,i]/(2*np.pi/Lavg)
+        if qx**2+qy**2>lim or qx<-qy or (qy<1 and qx==-qy): ignore=np.append(ignore,i)
+    return ignore
+def Get_fit_data(xdata,Z,dZ,lim):
+    ignore=Get_ignore(xdata,lim)
+    xdatar=np.delete(xdata    , ignore, 1)
+    Zr=np.delete(Z.ravel(), ignore, 0)
+    dZr=np.delete(dZ.ravel(), ignore, 0)
+    return xdatar,Zr,dZr
+
+
+gg=4
+xmin, xmax, nx = -gg,gg,2*gg+1 #-12, 11, 24
+ymin, ymax, ny = -gg,gg,2*gg+1 #-12, 11, 24
+x, y = np.linspace(xmin, xmax, nx)*(2*np.pi/Lavg), np.linspace(ymin, ymax, ny)*(2*np.pi/Lavg)
+X, Y = np.meshgrid(x, y)
+xdata = np.vstack((X.ravel(), Y.ravel()))
+for i in range(Nb):
+    Z,dZ=Get_ZdZ_n_rand(hqtavg,dhqtavg,pows)
+    xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
+    [popts[0,i],popts[1,i]], pcov = curve_fit(_new_hq, xdatar, Zr, p0,sigma=dZr)
