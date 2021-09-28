@@ -38,3 +38,20 @@ def Blocking_2D(xqt):
             #dhq2[i]=np.std(hq2t[i])
             bloxydys[ix,iy]=np.array([blox,bloy,dbloy])
     return dxq2,bloxydys
+#----------------------------------------------------------------------
+def Get_ZdZ_n_rand(f,df,pows):
+    #df/=np.sqrt(time-t0+1)
+    Z = np.zeros(X.shape)
+    dZ = np.zeros(X.shape)
+    for n in range(g):
+        for m in range(g):
+            qx=(n%g)-g*(n>g/2-1)
+            qy=(m%g)-g*(m>g/2-1)
+            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
+            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
+            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), (df[n,m])*(q**pows),1 )
+            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
+    Z[gg,gg]=np.nan
+    return Z,dZ
+
+
