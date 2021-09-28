@@ -1,3 +1,33 @@
+
+def Get_ZdZ_n(f,df,pows):
+    Z = np.zeros(X.shape)
+    dZ = np.zeros(X.shape)
+    for n in range(g):
+        for m in range(g):
+            qx=(n%g)-g*(n>g/2-1)
+            qy=(m%g)-g*(m>g/2-1)
+            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
+            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
+            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), 0,1 )
+            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
+    Z[gg,gg]=np.nan
+    return Z,dZ
+#----------------------------------------------------------------------
+def Get_ZdZ_n_rand(f,df,pows):
+    #df/=np.sqrt(time-t0+1)
+    Z = np.zeros(X.shape)
+    dZ = np.zeros(X.shape)
+    for n in range(g):
+        for m in range(g):
+            qx=(n%g)-g*(n>g/2-1)
+            qy=(m%g)-g*(m>g/2-1)
+            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
+            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
+            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), (df[n,m])*(q**pows),1 )
+            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
+    Z[gg,gg]=np.nan
+    return Z,dZ
+#----------------------------------------------------------------------
 def Get_lim(xmaxlim,xqtavg,dxqtavg,func,func2,cmax):
     xlim=xmaxlim
     Z,dZ=Get_ZdZ_n(xqtavg,dxqtavg,pows)
@@ -13,6 +43,7 @@ def Get_lim(xmaxlim,xqtavg,dxqtavg,func,func2,cmax):
         c=stats.chi2.cdf(sum(np.power(np.divide(np.subtract(Zr,func(xdatar[0],xdatar[1],*popt)),dZr),2)) , len(xdatar[0])-len(popt))
     print c
     return xlim
+#----------------------------------------------------------------------
 def Get_ignore(xdata,lim):
     ignore=[]
     for i in range(len(xdata[0])):
@@ -20,6 +51,7 @@ def Get_ignore(xdata,lim):
         qy=xdata[1,i]/(2*np.pi/Lavg)
         if qx**2+qy**2>lim or qx<-qy or (qy<1 and qx==-qy): ignore=np.append(ignore,i)
     return ignore
+#----------------------------------------------------------------------
 def Get_fit_data(xdata,Z,dZ,lim):
     ignore=Get_ignore(xdata,lim)
     xdatar=np.delete(xdata    , ignore, 1)
@@ -40,3 +72,7 @@ for i in range(Nb):
     Z,dZ=Get_ZdZ_n_rand(hqtavg,dhqtavg,pows)
     xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
     [popts[0,i],popts[1,i]], pcov = curve_fit(_new_hq, xdatar, Zr, p0,sigma=dZr)
+#
+
+Z,dZ=Get_ZdZ_n(hqtavg,dhqtavg,pows)
+xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
