@@ -34,6 +34,8 @@ ymin, ymax, ny = -gg,gg,2*gg+1 #-12, 11, 24
 x, y = np.linspace(xmin, xmax, nx)*(2*np.pi/Lavg), np.linspace(ymin, ymax, ny)*(2*np.pi/Lavg)
 X, Y = np.meshgrid(x, y)
 xdata = np.vstack((X.ravel(), Y.ravel()))
+
+Nb=20
 for i in range(Nb):
     Z,dZ=Get_ZdZ_n_rand(hqtavg,dhqtavg,pows)
     xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
