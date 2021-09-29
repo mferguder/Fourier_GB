@@ -1,78 +1,51 @@
+import scipy.special as sc
+maxlim=32
+pows=4
+Nboot=200
+badness=0.9999999
+qmax=5.5
+def Bootstrp_2D(qx,qy,zx,dzx,xq_func,_xq_func,px,qmax):
+#     lim=Get_lim(maxlim,zx,dzx,xq_func,_xq_func,1-1e-5)
+#     Z,dZ=Get_ZdZ_n_rand(zx,dzx)
+    xdatar=np.vstack((qx, qy))
+#     xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
+    
+    a,b = curve_fit(_xq_func,   xdatar, zx, px, sigma=dzx)
+    chi_s=np.power(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx),2)
+    c=sc.gammainc((len(qxr)-len(a))/2.,sum(chi_s)/4.)   
+#     c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
+    
+    qzdzx=np.concatenate((np.array([qx]),np.array([qy]),np.array([zx]),np.array([dzx])))
+    params_xq=np.zeros((Nboot,len(a)))
+    dparams_xq=np.zeros((Nboot,len(a),len(a)))
+#     if lim==4: return params_xq,qzdzx
 
-def Get_ZdZ_n(f,df,pows):
-    Z = np.zeros(X.shape)
-    dZ = np.zeros(X.shape)
-    for n in range(g):
-        for m in range(g):
-            qx=(n%g)-g*(n>g/2-1)
-            qy=(m%g)-g*(m>g/2-1)
-            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
-            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
-            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), 0,1 )
-            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
-    Z[gg,gg]=np.nan
-    return Z,dZ
-#----------------------------------------------------------------------
-def Get_ZdZ_n_rand(f,df,pows):
-    #df/=np.sqrt(time-t0+1)
-    Z = np.zeros(X.shape)
-    dZ = np.zeros(X.shape)
-    for n in range(g):
-        for m in range(g):
-            qx=(n%g)-g*(n>g/2-1)
-            qy=(m%g)-g*(m>g/2-1)
-            if min(qx,qy)<-gg or max(qx,qy)>gg: continue
-            q=np.sqrt(qx**2+qy**2)*(2*np.pi/Lavg)
-            Z[qx+gg,qy+gg]=np.random.normal( (f[n,m])*(q**pows), (df[n,m])*(q**pows),1 )
-            dZ[qx+gg,qy+gg]=(df[n,m])*(q**pows)
-    Z[gg,gg]=np.nan
-    return Z,dZ
-#----------------------------------------------------------------------
-def Get_lim(xmaxlim,xqtavg,dxqtavg,func,func2,cmax):
-    xlim=xmaxlim
-    Z,dZ=Get_ZdZ_n(xqtavg,dxqtavg,pows)
-    xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,xlim)
-    xdatar2=np.sqrt(xdatar[0]**2+xdatar[1]**2)
-    popt, pcov = curve_fit(func2, xdatar, Zr, p0,sigma=dZr)
-    c=stats.chi2.cdf(sum(np.power(np.divide(np.subtract(Zr,func(xdatar[0],xdatar[1],*popt)),dZr),2)) , len(xdatar[0])-len(popt))
-    while c>cmax:
-        xlim-=1
-        xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,xlim)
-        xdatar2=np.sqrt(xdatar[0]**2+xdatar[1]**2)
-        popt, pcov = curve_fit(func2, xdatar, Zr, p0,sigma=dZr)
-        c=stats.chi2.cdf(sum(np.power(np.divide(np.subtract(Zr,func(xdatar[0],xdatar[1],*popt)),dZr),2)) , len(xdatar[0])-len(popt))
-    print c
-    return xlim
-#----------------------------------------------------------------------
-def Get_ignore(xdata,lim):
-    ignore=[]
-    for i in range(len(xdata[0])):
-        qx=xdata[0,i]/(2*np.pi/Lavg)
-        qy=xdata[1,i]/(2*np.pi/Lavg)
-        if qx**2+qy**2>lim or qx<-qy or (qy<1 and qx==-qy): ignore=np.append(ignore,i)
-    return ignore
-#----------------------------------------------------------------------
-def Get_fit_data(xdata,Z,dZ,lim):
-    ignore=Get_ignore(xdata,lim)
-    xdatar=np.delete(xdata    , ignore, 1)
-    Zr=np.delete(Z.ravel(), ignore, 0)
-    dZr=np.delete(dZ.ravel(), ignore, 0)
-    return xdatar,Zr,dZr
+    while c>badness or qmax**2<qx[-1]**2+qy[-1]**2:
+        if c<1: print( len(qx),c,np.mean(abs(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx))))
+        qx=qx[:-1]
+        qy=qy[:-1]
+        zx=zx[:-1]
+        dzx=dzx[:-1]
+        xdatar=xdatar[:,:-1]
+        a,b = curve_fit(_xq_func,   xdatar, zx, px, sigma=dzx)
+        chi_s=np.power(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx),2)
+        c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4.)
+#         c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
+    print( len(qx),c,np.mean(abs(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx))))
+    qzdzx=np.concatenate((np.array([qx]),np.array([qy]),np.array([np.sqrt(qx**2+qy**2)]),np.array([zx]),np.array([dzx])))
+    
+    i=0
+    while i<Nboot:
+        zxk=np.random.normal(zx,dzx,len(qx))
+        try:
+            params_xq[i], dparams_xq[i] = curve_fit(_xq_func,   xdatar, zx, px, sigma=dzx)
+            i+=1
+        except RuntimeError: print("Error - curve_fit failed")
+    params_xq =np.transpose(params_xq)
+#     print( params_xq,qzdzx)
+    return params_xq,qzdzx
 
+guess_prms = [(1./23,1./25)]
+p0 = [p for prms in guess_prms for p in prms]
 
-gg=4
-xmin, xmax, nx = -gg,gg,2*gg+1 #-12, 11, 24
-ymin, ymax, ny = -gg,gg,2*gg+1 #-12, 11, 24
-x, y = np.linspace(xmin, xmax, nx)*(2*np.pi/Lavg), np.linspace(ymin, ymax, ny)*(2*np.pi/Lavg)
-X, Y = np.meshgrid(x, y)
-xdata = np.vstack((X.ravel(), Y.ravel()))
-
-Nb=20
-for i in range(Nb):
-    Z,dZ=Get_ZdZ_n_rand(hqtavg,dhqtavg,pows)
-    xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
-    [popts[0,i],popts[1,i]], pcov = curve_fit(_new_hq, xdatar, Zr, p0,sigma=dZr)
-#
-
-Z,dZ=Get_ZdZ_n(hqtavg,dhqtavg,pows)
-xdatar,Zr,dZr=Get_fit_data(xdata,Z,dZ,lim)
+params_hq,qzdz1=Bootstrp_2D(qxr,qyr,z1,dz1,new_hq,_new_hq,p0,qmax)
