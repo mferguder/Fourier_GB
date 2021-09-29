@@ -1,4 +1,3 @@
-
 def Fourier_GB_2D(head,tail,surf,Lt,inorm):
     Lavg=np.mean(Lt)
     for Wavenumbers in range(1):
@@ -30,16 +29,10 @@ def Fourier_GB_2D(head,tail,surf,Lt,inorm):
         Qxr=Qxr[np.logical_not(ignorer)]
         Qyr=Qyr[np.logical_not(ignorer)]
         Q2r=Q2r[np.logical_not(ignorer)]
-        Q2=np.unique(Q2r)
-        q=Q2**.5*(2*np.pi/Lavg)
-
-        Q2r_sorted=np.sort(Q2r)
-        sorter=np.zeros((len(Q2r),len(Q2)))
-        j=0
-        for i in range(len(Q2r)):
-            if Q2r_sorted[i]!=Q2r_sorted[i-1]: j+=1
-            sorter[i,j-1]+=1
-        sorter/=np.sum(sorter, axis=(0))[None,:]
+#         Q2=np.unique(Q2r)
+        qxr=Qxr*    (2*np.pi/Lavg)
+        qyr=Qyr*    (2*np.pi/Lavg)
+        qr =Q2r**.5*(2*np.pi/Lavg)
 
     L=Lt[:,None]
     ln=np.sum((tail-head)**2,axis=2)**.5       # lipid length              time * N
@@ -121,8 +114,11 @@ def Fourier_GB_2D(head,tail,surf,Lt,inorm):
     nllq2t=np.abs((Qxr*nqx+Qyr*nqy)**2/Q2r)                       #     time * q_not_unique
     nLq2t =np.abs((Qyr*nqx-Qxr*nqy)**2/Q2r)
     hq2t  =np.abs(hqt)**2
-#   q_unique is not important for 2D Analysis
-#     nllq2t=np.matmul(nllq2t[:,Q2r.argsort()],sorter)              #     time * q_unique
-#     nLq2t=np.matmul(nLq2t[:,Q2r.argsort()],sorter)
-#     hq2t=np.matmul(hq2t[:,Q2r.argsort()],sorter)
-    return hq2t,nllq2t,nLq2t,Qxr,Qyr # h_agg,n_agg
+    hq2t  =hq2t[:,qr.argsort()]
+    nllq2t=nllq2t[:,qr.argsort()]
+    nLq2t =nLq2t[:,qr.argsort()]
+    qxr  =qxr[qr.argsort()]
+    qyr  =qyr[qr.argsort()]
+    qr  =qr[qr.argsort()]
+    
+    return hq2t,nllq2t,nLq2t,qxr,qyr,qr # h_agg,n_agg
