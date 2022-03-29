@@ -52,8 +52,25 @@ def Fourier_GB_2D(head,tail,surf,Lt,inorm,g):
     n_agg=np.zeros((time,3,2,g,g))             # grid directors            time * 3 * 2 * g * g
     h_agg=np.zeros((time,2,g,g))               # grid surface              time * 2 * g * g
 
-    z_c=np.mean(tail[:,:,2],axis=1)            # midplane                  time
-    alphas=((head[:,:,2].T>z_c).T)             # leaflet index             time * N
+    # z_c=np.mean(tail[:,:,2],axis=1)            # midplane                  time
+    # alphas=((head[:,:,2].T>z_c).T)             # leaflet index             time * N
+    alphas=head[:,:,2]*0.
+    g_c=int(np.ceil(Lavg/7.))
+    gxs_c=(head[:,:,0]%L*g_c//L).astype(int)               # x grid index              time * N
+    gys_c=(head[:,:,1]%L*g_c//L).astype(int)               # y grid index              time * N
+    for it in range(time):
+        gx_c=gxs_c[it]
+        gy_c=gys_c[it]
+        aggs_c=(np.arange(N)*g_c*g_c+gx_c*g_c+gy_c).astype(int)
+        Nagxy_c=np.zeros((N*g_c*g_c))
+        Nagxy_c[aggs_c]=np.ravel(np.logical_not(ignore_h[it])) # h does not ignore tilted lipids
+        Nagxy_c=Nagxy_c.reshape(N,g_c,g_c)
+        k_c= np.sum(Nagxy_c, axis=(0))                 # degeneracies           2 * g * g
+        k1_c = k_c[None,:,:]
+        Nagxy_c/=k1_c
+        c_gg=np.tensordot(tail[it,:,2], Nagxy_c, axes=(0,0))
+        alphas[it]=head[it,:,2]<c_gg[gx_c,gy_c]
+        
     gxs=(tail[:,:,0]%L*g//L)                   # x grid index              time * N
     gys=(tail[:,:,1]%L*g//L)                   # y grid index              time * N
     gxs_h=(surf[:,:,0]%L*g//L)                 # x grid index              time * N
