@@ -1,13 +1,18 @@
 
-badness=0.999#9
+#----------------------------------------------------------------------
 def Bootstrp(qx,zx,dzx,xq_func,px):
+    badness=0.999#9
+    Nboot=2000
+    div_chi=1
+
+    a,b = curve_fit(xq_func,   qx, zx, px, sigma=dzx)
+
     params_xq=np.zeros((Nboot,len(a)))
     dparams_xq=np.zeros((Nboot,len(a),len(a)))
-    
-    a,b = curve_fit(xq_func,   qx, zx, px, sigma=dzx)
+
     chi_s=np.power(np.divide(np.subtract(zx,xq_func(qx,*a)),dzx),2)
-    c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4.)   
-#     c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
+    c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4./div_chi)   
+    #     c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
 
     while c>badness:
         qx=qx[:-1]
@@ -15,10 +20,10 @@ def Bootstrp(qx,zx,dzx,xq_func,px):
         dzx=dzx[:-1]
         a,b = curve_fit(xq_func,   qx, zx, px, sigma=dzx)
         chi_s=np.power(np.divide(np.subtract(zx,xq_func(qx,*a)),dzx),2)
-        c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4.)
-#         c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
-    print len(qx),c,np.mean(abs(np.divide(np.subtract(zx,xq_func(qx,*a)),dzx)))
-    
+        c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4./div_chi)
+    #         c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
+    print(len(qx),c,np.mean(abs(np.divide(np.subtract(zx,xq_func(qx,*a)),dzx))) )
+
     for i in range(Nboot):
         zxk=np.random.normal(zx,dzx,len(qx))
         try: params_xq[i], dparams_xq[i] = curve_fit(xq_func,   qx, zxk, px, sigma=dzx)
@@ -27,59 +32,52 @@ def Bootstrp(qx,zx,dzx,xq_func,px):
     qzdzx=np.concatenate((np.array([qx]),np.array([zx]),np.array([dzx])))
 #     print params_xq,qzdzx
     return params_xq,qzdzx
-def Bootstrp2(qx,qy,zx,dzx,zy,dzy,xq_func,px,kx,ky):
-    qxn=qx*1.
-    qyn=qy*1.
-    zxn=zx*1.
-    zyn=zy*1.
-    dzxn=dzx
-    dzyn=dzy
-    qqn= np.concatenate((qxn,qyn))
-    zzn = np.concatenate((zxn,zyn))
-    dzzn= np.concatenate((dzxn,dzyn))
+#----------------------------------------------------------------------
+def Bootstrp_2D(qx,qy,zx,dzx,xq_func,_xq_func,px,qmax):
+    badness=0.999#9
+    Nboot=2000
+    div_chi=1
+
+    xdatar=np.vstack((qx, qy))
+    a,b = curve_fit(_xq_func,   xdatar, zx, px, sigma=dzx)
+    chi_s=np.power(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx),2)
+    c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4./div_chi)   
+
+    qzdzx=np.concatenate((np.array([qx]),np.array([qy]),np.array([zx]),np.array([dzx])))
     params_xq=np.zeros((Nboot,len(a)))
     dparams_xq=np.zeros((Nboot,len(a),len(a)))
-#     print len(qqn),len(qxn),len(qyn), zzn
 
-    a,b = curve_fit(xq_func,   qqn, zzn, px, sigma=dzzn, maxfev=1100)
-    chi_s=np.power(np.divide(np.subtract(zzn,xq_func(qqn,*a)),dzzn),2)
-    c=max(sc.gammainc((len(qxn)-kx)/2.,sum(chi_s[:len(qxn)])/4.),
-          sc.gammainc((len(qyn)-ky)/2.,sum(chi_s[len(qxn):])/4.))
-#     c=max(stats.chi2.cdf(sum(chi_s[:len(qxn)]) , len(qxn)-2-1),
-#           stats.chi2.cdf(sum(chi_s[len(qxn):]) , len(qyn)-2-1))
-    
-    while c>badness:
-        #print('nll&nL sim. fit is worse than seperate')
-        which=cmp(sc.gammainc((len(qxn)-kx)/2.,sum(chi_s[:len(qxn)])/4.),
-                  sc.gammainc((len(qyn)-ky)/2.,sum(chi_s[len(qxn):])/4.))
-#         which=cmp(stats.chi2.cdf(sum(chi_s[:len(qxn)]) , len(qxn)-2-1),
-#                   stats.chi2.cdf(sum(chi_s[len(qxn):]) , len(qyn)-2-1))
-        if which>=0:
-            qxn=qxn[:-1]
-            zxn=zxn[:-1]
-            dzxn=dzxn[:-1]
-        if which<=0:
-            qyn=qyn[:-1]
-            zyn=zyn[:-1]
-            dzyn=dzyn[:-1]
-        qqn= np.concatenate((qxn,qyn)) 
-        zzn = np.concatenate((zxn,zyn))
-        dzzn= np.concatenate((dzxn,dzyn))
-        a,b = curve_fit(xq_func,   qqn, zzn, px, sigma=dzzn)
-        chi_s=np.power(np.divide(np.subtract(zzn,xq_func(qqn,*a)),dzzn),2)
-        c=max(sc.gammainc((len(qxn)-kx)/2.,sum(chi_s[:len(qxn)])/4.),
-              sc.gammainc((len(qyn)-ky)/2.,sum(chi_s[len(qxn):])/4.))
-#         c=max(stats.chi2.cdf(sum(chi_s[:len(qxn)]) , len(qxn)-2-1),
-#               stats.chi2.cdf(sum(chi_s[len(qxn):]) , len(qyn)-2-1))
-        
-    print len(qxn),len(qyn),c,np.mean(abs(np.divide(np.subtract(zzn,xq_func(qqn,*a)),dzzn)))
-    for i in range(Nboot):
-        zznk=np.random.normal(zzn,dzzn,len(qqn))
-        try: params_xq[i], dparams_xq[i] = curve_fit(xq_func,   qqn, zznk, px, sigma=dzzn)
+    while c>badness or qmax**2<qx[-1]**2+qy[-1]**2:
+    #     print('c='+str(c))
+    #     if c<1: print( len(qx),c,np.mean(abs(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx))))
+        qx=qx[:-1]
+        qy=qy[:-1]
+        zx=zx[:-1]
+        dzx=dzx[:-1]
+        xdatar=np.vstack((qx, qy))
+        a,b = curve_fit(_xq_func,   xdatar, zx, px, sigma=dzx)
+        chi_s=np.power(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx),2)
+        c=sc.gammainc((len(qx)-len(a))/2.,sum(chi_s)/4./div_chi)
+    #         c=stats.chi2.cdf(sum(chi_s) , len(qx)-len(a)-1)
+    print( len(qx),c,np.mean(abs(np.divide(np.subtract(zx,xq_func(qx,qy,*a)),dzx))))
+    q=np.sqrt(qx**2+qy**2)
+    zx=zx[q.argsort()]
+    dzx=dzx[q.argsort()]
+    qx=qx[q.argsort()]
+    qy=qy[q.argsort()]
+    q=q[q.argsort()]
+    qzdzx=np.concatenate((np.array([qx]), np.array([qy]), np.array([q]), np.array([zx]), np.array([dzx])))
+
+    i=0
+    while i<Nboot:
+        zxk=np.random.normal(zx,dzx,len(qx))
+        try:
+            params_xq[i], dparams_xq[i] = curve_fit(_xq_func,   xdatar, zxk, px, sigma=dzx)
+            i+=1
         except RuntimeError: print("Error - curve_fit failed")
     params_xq =np.transpose(params_xq)
-    qzdzx=np.concatenate((np.array([qqn]),np.array([zzn]),np.array([dzzn]))) 
     return params_xq,qzdzx
+#----------------------------------------------------------------------
    
    
 params_hq,qzdz1=Bootstrp(q,z1,dz1,hq_func,ph)
