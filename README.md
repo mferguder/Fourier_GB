@@ -3,25 +3,19 @@ Grid-based and Least-squares analysis of surface and direction fields of fluctua
 
 Following text may not be accurate
 
-## Fourier_GB
+## Fourier_GB and Fourier_LS
 Inputs:
 
-        Head, tail, and surface positions of each lipid molecule in a bilayer
+        Head, tail, and surface positions of each lipid molecule in a bilayer (time series)
+        Size of the box (time series)
+        Director normalization method (inorm)
+        Number of Fourier waves in on one axis (g)
 Outputs:
 
-        Time-series data of spectra (Gridded surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
+        Time-series data of spectra (GB or LS surface, parallel, and perpendicular director fluctuations) [$kT, nm$]
         Related wave numbers [nm]
 
-## Fourier_LS
-Inputs:
-
-        Head, tail, and surface positions of each lipid molecule in a bilayer
-Outputs:
-
-        Time-series data of spectra (Least-squares fitted surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
-        Related wave numbers [nm]
-
-## Blocking Spectra
+## Blocking & Spectra
 Inputs:
 
         Time-series data of spectra (Gridded surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
@@ -29,7 +23,7 @@ Inputs:
 Outputs:
 
         Spectra (Surface, parallel, and perpendicular direction fluctuations) [$kT, nm$]
-        Error bars of spectra
+        Error bars
 Carries:
 
         Related wave numbers [nm]
