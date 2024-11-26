@@ -6,10 +6,10 @@ Following text may not be accurate
 ## Fourier_GB and Fourier_LS
 Inputs:
 
-        Head, tail, and surface positions of each lipid molecule in a bilayer (time series)
-        Size of the box (time series)
-        Director normalization method (inorm)
-        Number of Fourier waves in on one axis (g)
+        Head, tail, and surface positions of each lipid molecule in a bilayer (time, N, 3)
+        Size of the box (time, 1)
+        Director normalization method (inorm: int)
+        Number of Fourier waves in on one axis (g: int)
 Outputs:
 
         Time-series data of spectra (GB or LS surface, parallel, and perpendicular director fluctuations) [$kT, nm$]
